@@ -1,9 +1,4 @@
-DELIMITER &&
-use MomAndPop
-&&
-DROP PROCEDURE IF EXISTS sp_Create_User;
-&&
-CREATE PROCEDURE sp_Create_User(
+CREATE DEFINER=`root`@`%` PROCEDURE `sp_Create_User`(
     IN Username varchar(20),
     IN FirstName varchar(20),
     IN LastName varchar(20),
@@ -36,4 +31,3 @@ BEGIN
            ,Zip
            ,Verified);
 END
-&&

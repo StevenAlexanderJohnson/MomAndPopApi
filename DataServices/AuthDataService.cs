@@ -32,7 +32,6 @@ namespace Api.DataServices
                 command.Parameters.AddWithValue("passwordInput", PasswordHasher.HashPassword(newUser.Password));
                 string refresh_token = Authentication.GenerateRefreshToken();
                 command.Parameters.AddWithValue("refreshToken", refresh_token);
-                command.Parameters.AddWithValue("expiresIn", DateTime.Now.AddMinutes(7));
 
                 await command.ExecuteNonQueryAsync();
                 return refresh_token;

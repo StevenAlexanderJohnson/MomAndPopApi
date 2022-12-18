@@ -15,7 +15,7 @@
 
   <ItemGroup>
     <Folder Include="Contexts\" />
-    <Folder Include="StoredProcedures\" />
+    <Folder Include="StoredProcedures\Auth\" />
   </ItemGroup>
 
 </Project>
