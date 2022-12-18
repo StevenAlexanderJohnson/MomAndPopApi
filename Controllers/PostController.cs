@@ -43,6 +43,11 @@ namespace Api.Controllers
             }
         }
 
+        /// <summary>
+        /// Get a post from the database by it's ID.
+        /// </summary>
+        /// <param name="postId">Id of the post to be retrieved</param>
+        /// <returns>A list of Post objects that contains the Post information.</returns>
         [HttpGet]
         [Route("{postId}")]
         public async Task<ActionResult> GetPostById(Int64 postId)

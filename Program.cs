@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Api.Models;
+using System.Net;
+using Api.Dependencies;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,6 +33,7 @@ builder.Services.AddAuthentication(options =>
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
 }).AddJwtBearer(o => {
+
     JwtSettings settings = builder.Configuration.GetSection("Jwt").Get<JwtSettings>();
     o.TokenValidationParameters = new TokenValidationParameters
     {
@@ -47,11 +50,11 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddAuthorization();
 
 // Add the UserDataService to be injected into the controllers.
-MySqlConnection dbConnection = new MySqlConnection(builder.Configuration.GetConnectionString("MomAndPop"));
-builder.Services.AddTransient(_ => new Api.DataServices.UserDataService(dbConnection));
-builder.Services.AddTransient(_ => new Api.DataServices.PostDataService(dbConnection));
-MySqlConnection authDbConnection = new MySqlConnection(builder.Configuration.GetConnectionString("Auth"));
-builder.Services.AddTransient(_ => new Api.DataServices.AuthDataService(authDbConnection));
+var socialFactory = new MySqlConnectionFactory(builder.Configuration.GetConnectionString("MomAndPop"));
+builder.Services.AddTransient(_ => new Api.DataServices.UserDataService(socialFactory));
+builder.Services.AddTransient(_ => new Api.DataServices.PostDataService(socialFactory));
+var authFactory = new MySqlConnectionFactory(builder.Configuration.GetConnectionString("Auth"));
+builder.Services.AddTransient(_ => new Api.DataServices.AuthDataService(authFactory));
 
 var app = builder.Build();
 

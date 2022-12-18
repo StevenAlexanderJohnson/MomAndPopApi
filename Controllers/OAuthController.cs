@@ -3,7 +3,9 @@ using Api.Models;
 using Api.Utility;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 using System.Data.Common;
+using System.Net;
 
 namespace Api.Controllers
 {
@@ -31,14 +33,22 @@ namespace Api.Controllers
         [Route("login")]
         public ActionResult Login([FromBody] UserLogin userLogin)
         {
+            try
+            {
             UserModel user = Authentication.Authenticate(userLogin, _userDataService, _authDataService).Result;
             if (user != null)
             {
                 var token = Jwt.GenerateJwt(_config, user);
+                Response.Cookies.Append("refreshToken", user.RefreshToken!);
                 return Ok(new { token = token});
             }
 
             return BadRequest("User not found.");
+            }
+            catch(DbException)
+            {
+                return BadRequest();
+            }
         }
 
         /// <summary>
@@ -66,7 +76,7 @@ namespace Api.Controllers
             {
                 await _authDataService.CreateUserCredentials(newUser);
                 await _userDataService.CreateUserAsync(newUser);
-                return StatusCode(201);
+                return Login(new UserLogin() { UserName = newUser.Username, Password = newUser.Password });
             }
             catch (DbException ex)
             {
@@ -77,9 +87,50 @@ namespace Api.Controllers
                 else if (ex.SqlState == "23000")
                 {
                     await _authDataService.DeleteUserCredentials(newUser);
-                    return BadRequest("User credentials already exists.");
+                    return BadRequest("Username is already in use.");
                 }
                 return StatusCode(500);
+            }
+            catch (Exception)
+            {
+                return StatusCode(500);
+            }
+        }
+
+        /// <summary>
+        /// Refreshes the JWT Auth token using the refresh token.
+        /// </summary>
+        /// <returns>Returns an object containing a new auth token, and a cookie containing the new refresh token.</returns>
+        [AllowAnonymous]
+        [HttpGet]
+        [Route("refresh")]
+        public async Task<ActionResult> RefreshAuthToken()
+        {
+            try
+            {
+                string refreshToken = Request.Cookies["refreshToken"]!;
+                if (string.IsNullOrEmpty(refreshToken))
+                {
+                    return StatusCode(401);
+                }
+                UserModel user = await Authentication.RefreshAuthToken(refreshToken, _userDataService, _authDataService);
+
+                if (user == null)
+                {
+                    return StatusCode(401);
+                }
+
+                var authToken = Jwt.GenerateJwt(_config, user);
+                Response.Cookies.Append("refreshToken", user.RefreshToken!);
+                return Ok(new { token = authToken });
+            }
+            catch (DbException)
+            {
+                return StatusCode(401);
+            }
+            catch (SecurityTokenException)
+            {
+                return StatusCode(401);
             }
             catch (Exception)
             {

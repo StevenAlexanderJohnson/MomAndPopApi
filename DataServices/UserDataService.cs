@@ -1,4 +1,5 @@
-﻿using Api.Models;
+﻿using Api.Dependencies;
+using Api.Models;
 using MySqlConnector;
 using System.Data;
 
@@ -6,10 +7,10 @@ namespace Api.DataServices
 {
     public class UserDataService
     {
-        private readonly MySqlConnection _sqlConnection;
-        public UserDataService(MySqlConnection sqlConnection)
+        private readonly MySqlConnectionFactory _connectionFactory;
+        public UserDataService(MySqlConnectionFactory connectionFactory)
         {
-            _sqlConnection = sqlConnection;
+            _connectionFactory = connectionFactory;
         }
 
         /// <summary>
@@ -19,11 +20,9 @@ namespace Api.DataServices
         /// <returns>List containing one user who's id matches the parameter.</returns>
         public async Task<List<User>> GetUserByIdAsync(Int64 userId)
         {
-            await _sqlConnection.OpenAsync();
-
-            try
+            using (var connection = await _connectionFactory.CreateConnectionAsync())
             {
-                await using MySqlCommand sqlCommand = new MySqlCommand("sp_Select_User_By_Id", _sqlConnection)
+                await using MySqlCommand sqlCommand = new MySqlCommand("sp_Select_User_By_Id", connection)
                 {
                     CommandType = CommandType.StoredProcedure
                 };
@@ -49,14 +48,6 @@ namespace Api.DataServices
                 }
                 return output;
             }
-            catch (Exception)
-            {
-                throw;
-            }
-            finally
-            {
-                await _sqlConnection.CloseAsync();
-            }
         }
 
         /// <summary>
@@ -66,10 +57,9 @@ namespace Api.DataServices
         /// <returns>List of Users who's username match search parameter.</returns>
         public async Task<List<User>> GetUsersByUsernameAsync(string username)
         {
-            await _sqlConnection.OpenAsync();
-            try
+            using (var connection = await _connectionFactory.CreateConnectionAsync())
             {
-                await using MySqlCommand sqlCommand = new MySqlCommand("sp_Select_User_By_Username", _sqlConnection)
+                await using MySqlCommand sqlCommand = new MySqlCommand("sp_Select_User_By_Username", connection)
                 {
                     CommandType = CommandType.StoredProcedure
                 };
@@ -95,14 +85,6 @@ namespace Api.DataServices
                 }
                 return output;
             }
-            catch (Exception)
-            {
-                throw;
-            }
-            finally
-            {
-                await _sqlConnection.CloseAsync();
-            }
         }
 
         /// <summary>
@@ -116,12 +98,10 @@ namespace Api.DataServices
             {
                 throw new NullReferenceException("Password is null");
             }
-
-            await _sqlConnection.OpenAsync();
-            try
+            using (var connection = await _connectionFactory.CreateConnectionAsync())
             {
                 // Add the user information to the database
-                await using MySqlCommand command = new MySqlCommand("sp_Create_User", _sqlConnection)
+                await using MySqlCommand command = new MySqlCommand("sp_Create_User", connection)
                 {
                     CommandType = CommandType.StoredProcedure
                 };
@@ -138,14 +118,6 @@ namespace Api.DataServices
                 command.Parameters.AddWithValue("@Verified", newUser.Verified);
 
                 await command.ExecuteNonQueryAsync();
-            }
-            catch (Exception e)
-            {
-                throw;
-            }
-            finally
-            {
-                await _sqlConnection.CloseAsync();
             }
         }
     }

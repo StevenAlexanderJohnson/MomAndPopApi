@@ -1,4 +1,5 @@
-﻿using MySqlConnector;
+﻿using Api.Dependencies;
+using MySqlConnector;
 using System.Data;
 using System.Text;
 
@@ -6,10 +7,10 @@ namespace Api.DataServices
 {
     public class PostDataService
     {
-        private readonly MySqlConnection _sqlConnection;
-        public PostDataService(MySqlConnection sqlConnection) 
+        private readonly MySqlConnectionFactory _connectionFactory;
+        public PostDataService(MySqlConnectionFactory connectionFactory) 
         {
-            _sqlConnection = sqlConnection;
+            _connectionFactory = connectionFactory;
         }
 
         /// <summary>
@@ -19,10 +20,9 @@ namespace Api.DataServices
         /// <returns>List of post containing the Post</returns>
         internal async Task<List<Post>> GetPostByIdAsync(long postId)
         {
-            await _sqlConnection.OpenAsync();
-            try
+            using (var connection = await _connectionFactory.CreateConnectionAsync())
             {
-                await using MySqlCommand command = new MySqlCommand("sp_Get_Post_By_Id", _sqlConnection)
+                await using MySqlCommand command = new MySqlCommand("sp_Get_Post_By_Id", connection)
                 {
                     CommandType = CommandType.StoredProcedure
                 };
@@ -40,16 +40,7 @@ namespace Api.DataServices
                     addValue.UserId = sqlReader.GetInt64("user_id");
                     output.Add(addValue);
                 }
-
                 return output;
-            }
-            catch(Exception)
-            {
-                throw;
-            }
-            finally
-            {
-                await _sqlConnection.CloseAsync();
             }
         }
 
@@ -60,23 +51,14 @@ namespace Api.DataServices
         /// <returns>Nothing</returns>
         public async Task DeletePostByIdAsync(Post post)
         {
-            await _sqlConnection.OpenAsync();
-            try
+            using (var connection = await _connectionFactory.CreateConnectionAsync())
             {
-                await using MySqlCommand command = new MySqlCommand("sp_Delete_Post_By_Id", _sqlConnection)
+                await using MySqlCommand command = new MySqlCommand("sp_Delete_Post_By_Id", connection)
                 {
                     CommandType = CommandType.StoredProcedure
                 };
 
                 await command.ExecuteNonQueryAsync();
-            }
-            catch(Exception)
-            {
-                throw;
-            }
-            finally
-            {
-                await _sqlConnection.CloseAsync();
             }
         }
 
@@ -87,10 +69,9 @@ namespace Api.DataServices
         /// <returns>Nothing</returns>
         public async Task CreatePostAsync(Post newPost)
         {
-            await _sqlConnection.OpenAsync();
-            try
+            using (var connection = await _connectionFactory.CreateConnectionAsync())
             {
-                await using MySqlCommand command = new MySqlCommand("sp_Create_Post", _sqlConnection)
+                await using MySqlCommand command = new MySqlCommand("sp_Create_Post", connection)
                 {
                     CommandType = CommandType.StoredProcedure
                 };
@@ -100,14 +81,6 @@ namespace Api.DataServices
                 command.Parameters.AddWithValue("UserID", newPost.UserId);
 
                 await command.ExecuteNonQueryAsync();
-            }
-            catch (Exception)
-            {
-                throw;
-            }
-            finally
-            {
-                await _sqlConnection.CloseAsync();
             }
         }
     }
