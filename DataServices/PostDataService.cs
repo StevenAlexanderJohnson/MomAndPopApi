@@ -1,11 +1,12 @@
-﻿using Api.Dependencies;
+﻿using Api.DataServices.Interfaces;
+using Api.Dependencies;
+using Api.Models.Response;
 using MySqlConnector;
 using System.Data;
-using System.Text;
 
 namespace Api.DataServices
 {
-    public class PostDataService
+    public class PostDataService : IPostDataService
     {
         private readonly MySqlConnectionFactory _connectionFactory;
         public PostDataService(MySqlConnectionFactory connectionFactory) 
@@ -13,12 +14,7 @@ namespace Api.DataServices
             _connectionFactory = connectionFactory;
         }
 
-        /// <summary>
-        /// Searches for a post in the database with the same post ID.
-        /// </summary>
-        /// <param name="postId">ID of desired post.</param>
-        /// <returns>List of post containing the Post</returns>
-        internal async Task<List<Post>> GetPostByIdAsync(long postId)
+        public async Task<List<PostResponse>> GetPostByIdAsync(long postId)
         {
             using (var connection = await _connectionFactory.CreateConnectionAsync())
             {
@@ -29,26 +25,71 @@ namespace Api.DataServices
                 command.Parameters.AddWithValue("postId", postId);
 
                 await using MySqlDataReader sqlReader = await command.ExecuteReaderAsync();
-                List<Post> output = new List<Post>();
+                List<PostResponse> output = new List<PostResponse>();
                 while (sqlReader.Read())
                 {
-                    Post addValue = new Post();
+                    PostResponse addValue = new PostResponse();
                     addValue.Id = postId;
-                    addValue.Image = Encoding.Default.GetString((byte[])sqlReader["image"]);
                     addValue.Title = sqlReader.GetString("title");
                     addValue.Description = sqlReader.GetString("description");
-                    addValue.UserId = sqlReader.GetInt64("user_id");
+                    addValue.Attachment = sqlReader.GetBoolean("attachment");
+                    if(addValue.Attachment)
+                    {
+                        addValue.ImageUrl = $"https://localhost:7282/api/image/{addValue.Id}";
+                    }
                     output.Add(addValue);
                 }
                 return output;
             }
         }
 
-        /// <summary>
-        /// Delete a post from the database by post ID
-        /// </summary>
-        /// <param name="post">Object containing the post information.</param>
-        /// <returns>Nothing</returns>
+        public async Task<Tuple<byte[], string>> GetPostImageByIdAsync(Int64 postId)
+        {
+            using (var connection = await _connectionFactory.CreateConnectionAsync())
+            {
+                await using MySqlCommand command = new MySqlCommand("sp_Get_Post_Image", connection)
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
+                command.Parameters.AddWithValue("postId", postId);
+
+                await using MySqlDataReader reader = await command.ExecuteReaderAsync();
+                await reader.ReadAsync();
+                Tuple<byte[], string> output = new Tuple<byte[], string>((byte[])reader["image"], (string)reader["image_type"]);
+                return output;
+            }
+        }
+
+        public async Task<List<PostResponse>> GetPostWindowAsync(Int64 offset)
+        {
+            using (var connection = await _connectionFactory.CreateConnectionAsync())
+            {
+                await using MySqlCommand command = new MySqlCommand("sp_Get_Post_Window", connection)
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
+                command.Parameters.AddWithValue("page_offset", offset);
+
+                await using MySqlDataReader sqlReader = await command.ExecuteReaderAsync();
+                List<PostResponse> output = new List<PostResponse>();
+                while(sqlReader.Read())
+                {
+                    PostResponse addValue = new PostResponse();
+                    addValue.Id = sqlReader.GetInt64("id");
+                    addValue.Title = sqlReader.GetString("title");
+                    addValue.Description = sqlReader.GetString("description");
+                    addValue.Attachment = sqlReader.GetBoolean("attachment");
+                    if(addValue.Attachment)
+                    {
+                        addValue.ImageUrl = $"https://localhost:7282/api/image/{addValue.Id}";
+                    }
+                    output.Add(addValue);
+                }
+
+                return output;
+            }
+        }
+
         public async Task DeletePostByIdAsync(Post post)
         {
             using (var connection = await _connectionFactory.CreateConnectionAsync())
@@ -62,11 +103,6 @@ namespace Api.DataServices
             }
         }
 
-        /// <summary>
-        /// Creates a post in the database.
-        /// </summary>
-        /// <param name="newPost">Object containing the post information.</param>
-        /// <returns>Nothing</returns>
         public async Task CreatePostAsync(Post newPost)
         {
             using (var connection = await _connectionFactory.CreateConnectionAsync())
@@ -75,7 +111,11 @@ namespace Api.DataServices
                 {
                     CommandType = CommandType.StoredProcedure
                 };
-                command.Parameters.AddWithValue("Image", newPost.Image);
+
+                using MemoryStream ms = new MemoryStream();
+                await newPost.Image[0].CopyToAsync(ms);
+                command.Parameters.AddWithValue("Image", ms.ToArray());
+                command.Parameters.AddWithValue("Image_Type", newPost.Image[0].ContentType);
                 command.Parameters.AddWithValue("Title", newPost.Title);
                 command.Parameters.AddWithValue("Description", newPost.Description);
                 command.Parameters.AddWithValue("UserID", newPost.UserId);

@@ -8,6 +8,12 @@ namespace Api.Utility
 {
     public static class Jwt
     {
+        /// <summary>
+        /// Generates the JWT token used to authorize the user.
+        /// </summary>
+        /// <param name="config">Configuration to get JWT settings from appsettings.</param>
+        /// <param name="user">User model generate claims in the JWT</param>
+        /// <returns>JWT as a string.</returns>
         public static string GenerateJwt(IConfiguration config, UserModel user)
         {
             var settings = config.GetSection("Jwt").Get<JwtSettings>();

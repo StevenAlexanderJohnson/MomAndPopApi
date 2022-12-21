@@ -1,11 +1,12 @@
-﻿using Api.Dependencies;
+﻿using Api.DataServices.Interfaces;
+using Api.Dependencies;
 using Api.Models;
 using MySqlConnector;
 using System.Data;
 
 namespace Api.DataServices
 {
-    public class UserDataService
+    public class UserDataService : IUserDataService
     {
         private readonly MySqlConnectionFactory _connectionFactory;
         public UserDataService(MySqlConnectionFactory connectionFactory)
@@ -13,11 +14,6 @@ namespace Api.DataServices
             _connectionFactory = connectionFactory;
         }
 
-        /// <summary>
-        /// Gets a list of users who's username are equal to parameter
-        /// </summary>
-        /// <param name="userId">The Id of the user you want to find</param>
-        /// <returns>List containing one user who's id matches the parameter.</returns>
         public async Task<List<User>> GetUserByIdAsync(Int64 userId)
         {
             using (var connection = await _connectionFactory.CreateConnectionAsync())
@@ -50,11 +46,6 @@ namespace Api.DataServices
             }
         }
 
-        /// <summary>
-        /// Get a list of users who's username match parameter.
-        /// </summary>
-        /// <param name="username">Username to search for</param>
-        /// <returns>List of Users who's username match search parameter.</returns>
         public async Task<List<User>> GetUsersByUsernameAsync(string username)
         {
             using (var connection = await _connectionFactory.CreateConnectionAsync())
@@ -87,11 +78,6 @@ namespace Api.DataServices
             }
         }
 
-        /// <summary>
-        /// Creates a user in the database.
-        /// </summary>
-        /// <param name="newUser">User object to be inserted into the database.</param>
-        /// <returns>Nothing</returns>
         public async Task CreateUserAsync(User newUser)
         {
             if (newUser.Password == "")

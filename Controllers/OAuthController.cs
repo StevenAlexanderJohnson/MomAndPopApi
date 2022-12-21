@@ -1,4 +1,4 @@
-﻿using Api.DataServices;
+﻿using Api.DataServices.Interfaces;
 using Api.Models;
 using Api.Utility;
 using Microsoft.AspNetCore.Authorization;
@@ -14,9 +14,9 @@ namespace Api.Controllers
     public class OAuth : ControllerBase
     {
         private readonly IConfiguration _config;
-        private readonly AuthDataService _authDataService;
-        private readonly UserDataService _userDataService;
-        public OAuth(IConfiguration config, AuthDataService authDataService, UserDataService userDataService)
+        private readonly IAuthDataService _authDataService;
+        private readonly IUserDataService _userDataService;
+        public OAuth(IConfiguration config, IAuthDataService authDataService, IUserDataService userDataService)
         {
             _config = config;
             _authDataService = authDataService;
@@ -35,17 +35,22 @@ namespace Api.Controllers
         {
             try
             {
-            UserModel user = Authentication.Authenticate(userLogin, _userDataService, _authDataService).Result;
-            if (user != null)
-            {
-                var token = Jwt.GenerateJwt(_config, user);
-                Response.Cookies.Append("refreshToken", user.RefreshToken!);
-                return Ok(new { token = token});
-            }
+                UserModel user = Authentication.Authenticate(userLogin, _userDataService, _authDataService).Result;
+                if (user != null)
+                {
+                    Response.Cookies.Append("refreshToken", user.RefreshToken!, new CookieOptions
+                    {
+                        HttpOnly = true,
+                        IsEssential = true
+                    });
 
-            return BadRequest("User not found.");
+                    var token = Jwt.GenerateJwt(_config, user);
+                    return Ok(new { token = token });
+                }
+
+                return BadRequest("User not found.");
             }
-            catch(DbException)
+            catch (DbException)
             {
                 return BadRequest();
             }
@@ -98,6 +103,31 @@ namespace Api.Controllers
         }
 
         /// <summary>
+        /// Sets the refresh token to expire now.
+        /// </summary>
+        /// <returns>StatusCode 200 on success</returns>
+        [AllowAnonymous]
+        [HttpPost]
+        [Route("logout")]
+        public async Task<ActionResult> Logout()
+        {
+            try
+            {
+                string refreshToken = Request.Cookies["refreshToken"]!;
+                if(string.IsNullOrEmpty(refreshToken))
+                {
+                    return BadRequest();
+                }
+                await _authDataService.ExpireRefreshTokenAsync(refreshToken);
+                return Ok();
+            }
+            catch (Exception)
+            {
+                return StatusCode(500);
+            }
+        }
+
+        /// <summary>
         /// Refreshes the JWT Auth token using the refresh token.
         /// </summary>
         /// <returns>Returns an object containing a new auth token, and a cookie containing the new refresh token.</returns>
@@ -120,8 +150,13 @@ namespace Api.Controllers
                     return StatusCode(401);
                 }
 
+                Response.Cookies.Append("refreshToken", user.RefreshToken!, new CookieOptions
+                {
+                    HttpOnly = true,
+                    IsEssential = true
+                });
+
                 var authToken = Jwt.GenerateJwt(_config, user);
-                Response.Cookies.Append("refreshToken", user.RefreshToken!);
                 return Ok(new { token = authToken });
             }
             catch (DbException)

@@ -1,6 +1,5 @@
-using Api.DataServices;
+using Api.DataServices.Interfaces;
 using Api.Models;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Data.Common;
@@ -12,12 +11,10 @@ namespace Api.Controllers
     [Authorize]
     public class UserController : ControllerBase
     {
-        private readonly UserDataService _userDataService;
-        private readonly AuthDataService _authDataService;
-        public UserController(UserDataService userDataService, AuthDataService authDataService)
+        private readonly IUserDataService _userDataService;
+        public UserController(IUserDataService userDataService)
         {
             _userDataService = userDataService;
-            _authDataService = authDataService;
         }
 
         /// <summary>

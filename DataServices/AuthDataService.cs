@@ -1,4 +1,5 @@
-﻿using Api.Dependencies;
+﻿using Api.DataServices.Interfaces;
+using Api.Dependencies;
 using Api.Models;
 using Api.Utility;
 using MySqlConnector;
@@ -6,7 +7,7 @@ using System.Data;
 
 namespace Api.DataServices
 {
-    public class AuthDataService
+    public class AuthDataService : IAuthDataService
     {
         private readonly MySqlConnectionFactory _connectionFactory;
         public AuthDataService(MySqlConnectionFactory connectionFactory)
@@ -14,11 +15,6 @@ namespace Api.DataServices
             _connectionFactory = connectionFactory;
         }
 
-        /// <summary>
-        /// Creates a record in the Auth database using the username and hashed password.
-        /// </summary>
-        /// <param name="newUser">Object containing the username and password for the user.</param>
-        /// <returns>Nothing</returns>
         public async Task<string> CreateUserCredentials(User newUser)
         {
             using (var connection = await _connectionFactory.CreateConnectionAsync())
@@ -38,11 +34,6 @@ namespace Api.DataServices
             }
         }
 
-        /// <summary>
-        /// Delete the user credentials from the Auth database
-        /// </summary>
-        /// <param name="user">Object containing the username and password of the user.</param>
-        /// <returns>Nothing</returns>
         public async Task DeleteUserCredentials(User user)
         {
             using (var connection = await _connectionFactory.CreateConnectionAsync())
@@ -57,11 +48,6 @@ namespace Api.DataServices
             }
         }
 
-        /// <summary>
-        /// Validate user credentials.
-        /// </summary>
-        /// <param name="user">Object containing the username and password of the user.</param>
-        /// <returns>True if the credentials were correct and false if not.</returns>
         public async Task<bool> ValidateUserCredentialsAsync(UserLogin user)
         {
             using (var connection = await _connectionFactory.CreateConnectionAsync())
@@ -108,6 +94,20 @@ namespace Api.DataServices
                 };
                 command.Parameters.AddWithValue("usernameInput", username);
                 command.Parameters.AddWithValue("newRefreshToken", newRefreshToken);
+
+                await command.ExecuteNonQueryAsync();
+            }
+        }
+
+        public async Task ExpireRefreshTokenAsync(string refreshToken)
+        {
+            using (var connection = await _connectionFactory.CreateConnectionAsync())
+            {
+                await using MySqlCommand command = new MySqlCommand("sp_Expire_Refresh_Token", connection)
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
+                command.Parameters.AddWithValue("refreshToken", refreshToken);
 
                 await command.ExecuteNonQueryAsync();
             }

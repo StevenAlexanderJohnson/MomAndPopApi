@@ -5,6 +5,11 @@ namespace Api.Utility
 {
     public static class PasswordHasher
     {
+        /// <summary>
+        /// Hashes password before being inserted into database.
+        /// </summary>
+        /// <param name="password">Raw password supplied by the user.</param>
+        /// <returns>Hashed password</returns>
         public static string HashPassword(string password)
         {
             var password_hash = "";

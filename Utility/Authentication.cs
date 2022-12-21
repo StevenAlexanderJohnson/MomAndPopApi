@@ -1,7 +1,6 @@
-﻿using Api.DataServices;
+﻿using Api.DataServices.Interfaces;
 using Api.Models;
 using Microsoft.IdentityModel.Tokens;
-using System.Data.Common;
 using System.Security.Cryptography;
 
 namespace Api.Utility
@@ -15,7 +14,7 @@ namespace Api.Utility
         /// <param name="userDataService">Service that talks to the Social database</param>
         /// <param name="authDataService">Service that talks to the Auth database</param>
         /// <returns>UserModel that contains the user information and refresh token.</returns>
-        public static async Task<UserModel> Authenticate(UserLogin userLogin, UserDataService userDataService, AuthDataService authDataService)
+        public static async Task<UserModel> Authenticate(UserLogin userLogin, IUserDataService userDataService, IAuthDataService authDataService)
         {
             bool valid = await authDataService.ValidateUserCredentialsAsync(userLogin);
             if (!valid)
@@ -41,7 +40,7 @@ namespace Api.Utility
         /// <param name="authDataService">Service that talks to the Auth database</param>
         /// <returns>UserModel that contains the username and id of the user to generate a new JWT.</returns>
         /// <exception cref="Exception"></exception>
-        public static async Task<UserModel> RefreshAuthToken(string refreshToken, UserDataService userDataService, AuthDataService authDataService)
+        public static async Task<UserModel> RefreshAuthToken(string refreshToken, IUserDataService userDataService, IAuthDataService authDataService)
         {
             string username = await authDataService.ValidateRefreshTokenAsync(refreshToken);
             if (string.IsNullOrEmpty(username))

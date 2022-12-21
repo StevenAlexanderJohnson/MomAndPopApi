@@ -1,4 +1,5 @@
-﻿using Api.DataServices;
+﻿using Api.DataServices.Interfaces;
+using Api.Models.Response;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Data.Common;
@@ -10,8 +11,8 @@ namespace Api.Controllers
     [Route("api/Post")]
     public class PostController : ControllerBase
     {
-        private readonly PostDataService _postDataService;
-        public PostController(PostDataService postDataService)
+        private readonly IPostDataService _postDataService;
+        public PostController(IPostDataService postDataService)
         {
             _postDataService = postDataService;
         }
@@ -22,7 +23,7 @@ namespace Api.Controllers
         /// <param name="newPost">Object containing post information.</param>
         /// <returns>Status Code 201 if success, 400 for database issue, and 500 for server error</returns>
         [HttpPost]
-        public async Task<ActionResult> Post(Post newPost)
+        public async Task<ActionResult> Post([FromForm] Post newPost)
         {
             try
             {
@@ -54,7 +55,7 @@ namespace Api.Controllers
         {
             try
             {
-                List<Post> output = await _postDataService.GetPostByIdAsync(postId);
+                List<PostResponse> output = await _postDataService.GetPostByIdAsync(postId);
                 return Ok(output);
             }
             catch (DbException)
@@ -62,6 +63,30 @@ namespace Api.Controllers
                 return BadRequest("Post could not be found.");
             }
             catch (Exception)
+            {
+                return StatusCode(500);
+            }
+        }
+
+        /// <summary>
+        /// Get a list of posts with an offset from the first post.
+        /// </summary>
+        /// <param name="offset">Number of post from the first post</param>
+        /// <returns>List of PostResonse objects</returns>
+        [HttpGet]
+        [Route("offset/{offset}")]
+        public async Task<ActionResult> GetPostWindow(Int64 offset)
+        {
+            try
+            {
+                List<PostResponse> output = await _postDataService.GetPostWindowAsync(offset);
+                return Ok(output);
+            }
+            catch(DbException)
+            {
+                return BadRequest();
+            }
+            catch(Exception)
             {
                 return StatusCode(500);
             }
