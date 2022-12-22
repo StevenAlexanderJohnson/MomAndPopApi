@@ -14,7 +14,7 @@ CREATE TABLE `CONTACT` (
    `phone_verified` bit(1) DEFAULT NULL,
    KEY `user_id` (`user_id`),
    CONSTRAINT `CONTACT_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `USER` (`id`)
- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+ ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
 %%
 
 CREATE TABLE `POST` (
@@ -26,15 +26,16 @@ CREATE TABLE `POST` (
    PRIMARY KEY (`id`),
    KEY `POST_ibfk_1` (`user_id`),
    CONSTRAINT `POST_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `USER` (`id`) ON DELETE CASCADE
- ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+ ) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
 %%
 
 CREATE TABLE `POST_IMAGES` (
    `post_id` bigint NOT NULL,
-   `image` blob NOT NULL,
+   `image` mediumblob NOT NULL,
+   `image_type` varchar(15) NOT NULL,
    KEY `id_idx` (`post_id`),
    CONSTRAINT `id` FOREIGN KEY (`post_id`) REFERENCES `POST` (`id`) ON DELETE CASCADE
- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+ ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
 %%
 
 CREATE TABLE `STORE` (
@@ -51,7 +52,7 @@ CREATE TABLE `STORE` (
    PRIMARY KEY (`id`),
    KEY `owner_id` (`owner_id`),
    CONSTRAINT `STORE_ibfk_1` FOREIGN KEY (`owner_id`) REFERENCES `USER` (`id`)
- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+ ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
 %%
 
 CREATE TABLE `USER` (
@@ -67,7 +68,7 @@ CREATE TABLE `USER` (
    `verified` bit(1) NOT NULL,
    PRIMARY KEY (`id`),
    UNIQUE KEY `username_UNIQUE` (`username`)
- ) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+ ) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
 %%
 
 CREATE TABLE `USER_EMAIL` (
@@ -76,6 +77,5 @@ CREATE TABLE `USER_EMAIL` (
    `verified` bit(1) NOT NULL,
    KEY `user_id` (`user_id`),
    CONSTRAINT `USER_EMAIL_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `USER` (`id`) ON DELETE CASCADE
- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
- %%
+ ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
+%%

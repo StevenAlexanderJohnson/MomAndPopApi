@@ -8,7 +8,7 @@ CREATE TABLE `PERSISTENT_TOKENS` (
    `expires` datetime NOT NULL,
    PRIMARY KEY (`username`),
    CONSTRAINT `PERSISTENT_TOKENS_ibfk_1` FOREIGN KEY (`username`) REFERENCES `USER_CREDENTIALS` (`username`) ON DELETE CASCADE
- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+ ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
 
 %%
 
@@ -17,5 +17,5 @@ CREATE TABLE `USER_CREDENTIALS` (
    `password_hash` varchar(64) DEFAULT NULL,
    PRIMARY KEY (`username`),
    KEY `username` (`username`)
- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+ ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
 %%
