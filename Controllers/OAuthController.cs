@@ -141,7 +141,7 @@ namespace Api.Controllers
                 string refreshToken = Request.Cookies["refreshToken"]!;
                 if (string.IsNullOrEmpty(refreshToken))
                 {
-                    return StatusCode(401);
+                    return StatusCode(403);
                 }
                 UserModel user = await Authentication.RefreshAuthToken(refreshToken, _userDataService, _authDataService);
 
@@ -157,6 +157,7 @@ namespace Api.Controllers
                 });
 
                 var authToken = Jwt.GenerateJwt(_config, user);
+                Console.WriteLine("Token has been refreshed.");
                 return Ok(new { token = authToken });
             }
             catch (DbException)

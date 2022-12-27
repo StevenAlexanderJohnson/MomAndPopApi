@@ -4,5 +4,5 @@ BEGIN
 		SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'User credentials already exists.';
     END IF;
 	INSERT INTO USER_CREDENTIALS(username, password_hash) VALUES (usernameInput, passwordInput);
-    INSERT INTO PERSISTENT_TOKENS(username, refresh_token, expires) VALUES (usernameInput, refreshToken, NOW() + INTERVAL 7 MINUTE);
+    INSERT INTO PERSISTENT_TOKENS(username, refresh_token, expires) VALUES (usernameInput, refreshToken, NOW() + INTERVAL 30 MINUTE);
 END

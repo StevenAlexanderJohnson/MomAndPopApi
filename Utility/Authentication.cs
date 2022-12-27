@@ -26,7 +26,6 @@ namespace Api.Utility
             {
                 return null;
             }
-            // NEED TO DETERMINE HOW TO REFRESH THE AUTH TOKEN WITHOUT THE REFRESH TOKEN
             var newRefreshToken = GenerateRefreshToken();
             await authDataService.UpdateRefreshToken(userData.Username, newRefreshToken);
             return new UserModel() { Username = userLogin.UserName, Password = userLogin.Password, Roles = "validated", UserID = userData.Id, RefreshToken = newRefreshToken };

@@ -2,6 +2,6 @@ CREATE DEFINER=`root`@`%` PROCEDURE `sp_Update_Refresh_Token`(usernameInput VARC
 BEGIN
 	UPDATE PERSISTENT_TOKENS pt 
     SET pt.refresh_token = newRefreshToken, 
-		pt.expires = NOW() + INTERVAL 7 MINUTE
+		pt.expires = NOW() + INTERVAL 30 MINUTE
 	WHERE pt.username = usernameInput;
 END

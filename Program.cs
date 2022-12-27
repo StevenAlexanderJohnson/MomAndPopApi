@@ -5,6 +5,8 @@ using System.Text;
 using Api.Models;
 using System.Net;
 using Api.Dependencies;
+using Api.DataServices.Interfaces;
+using Api.DataServices;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -54,10 +56,12 @@ builder.Services.AddAuthorization();
 
 // Add the UserDataService to be injected into the controllers.
 var socialFactory = new MySqlConnectionFactory(builder.Configuration.GetConnectionString("MomAndPop"));
-builder.Services.AddTransient(_ => new Api.DataServices.UserDataService(socialFactory));
-builder.Services.AddTransient(_ => new Api.DataServices.PostDataService(socialFactory));
+Console.WriteLine(builder.Configuration.GetConnectionString("MomAndPop"));
+builder.Services.AddTransient<IUserDataService>(_ => new UserDataService(socialFactory));
+builder.Services.AddTransient<IPostDataService>(_ => new PostDataService(socialFactory));
 var authFactory = new MySqlConnectionFactory(builder.Configuration.GetConnectionString("Auth"));
-builder.Services.AddTransient(_ => new Api.DataServices.AuthDataService(authFactory));
+Console.WriteLine(builder.Configuration.GetConnectionString("Auth"));
+builder.Services.AddTransient<IAuthDataService>(_ => new AuthDataService(authFactory));
 
 var app = builder.Build();
 

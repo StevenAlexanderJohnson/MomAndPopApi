@@ -111,11 +111,18 @@ namespace Api.DataServices
                 {
                     CommandType = CommandType.StoredProcedure
                 };
-
-                using MemoryStream ms = new MemoryStream();
-                await newPost.Image[0].CopyToAsync(ms);
-                command.Parameters.AddWithValue("Image", ms.ToArray());
-                command.Parameters.AddWithValue("Image_Type", newPost.Image[0].ContentType);
+                if (newPost.Image.Count() > 0)
+                {
+                    using MemoryStream ms = new MemoryStream();
+                    await newPost.Image[0].CopyToAsync(ms);
+                    command.Parameters.AddWithValue("Image", ms.ToArray());
+                    command.Parameters.AddWithValue("Image_Type", newPost.Image[0].ContentType);
+                }
+                else
+                {
+                    command.Parameters.AddWithValue("Image", null);
+                    command.Parameters.AddWithValue("Image_Type", null);
+                }
                 command.Parameters.AddWithValue("Title", newPost.Title);
                 command.Parameters.AddWithValue("Description", newPost.Description);
                 command.Parameters.AddWithValue("UserID", newPost.UserId);
