@@ -64,5 +64,28 @@ namespace Api.Controllers
                 return StatusCode(500);
             }
         }
+
+        /// <summary>
+        /// Get the user info of the current user signed in.
+        /// </summary>
+        /// <returns>List of User object that only contains the signed in user's information.</returns>
+        [HttpGet]
+        public async Task<ActionResult> GetCurrentUser()
+        {
+            try
+            {
+                var username = User.Claims.First(c => c.Type == "username").Value;
+                var output = await _userDataService.GetUsersByUsernameAsync(username);
+                return Ok(output);
+            }
+            catch(DbException)
+            {
+                return StatusCode(400);
+            }
+            catch(Exception)
+            {
+                return StatusCode(500);
+            }
+        }
     }
 }

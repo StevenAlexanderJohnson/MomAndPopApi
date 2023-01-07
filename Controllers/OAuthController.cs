@@ -31,7 +31,7 @@ namespace Api.Controllers
         [AllowAnonymous]
         [HttpPost]
         [Route("login")]
-        public ActionResult Login([FromBody] UserLogin userLogin)
+        public async Task<ActionResult> Login([FromBody] UserLogin userLogin)
         {
             try
             {
@@ -48,7 +48,54 @@ namespace Api.Controllers
                     return Ok(new { token = token });
                 }
 
-                return BadRequest("User not found.");
+                return Unauthorized("User not found.");
+            }
+            catch (DbException)
+            {
+                return BadRequest();
+            }
+        }
+
+        /// <summary>
+        /// Updates the user's credentials
+        /// </summary>
+        /// <param name="updateCredentials">New credentials that are to be used.</param>
+        /// <returns>JWT Auth token if user changed username, and Ok if they changed their password.</returns>
+        [HttpPatch]
+        [Route("login")]
+        public async Task<ActionResult> ChangePassword([FromBody] UpdateCredentials updateCredentials)
+        {
+            try
+            {
+                string currentUsername = User.Claims.First(c => c.Type == "username").Value;
+                UserLogin userLogin = new UserLogin
+                {
+                    UserName = currentUsername,
+                    Password = updateCredentials.OldPassword
+                };
+                var user = Authentication.Authenticate(userLogin, _userDataService, _authDataService).Result;
+                if (user == null)
+                {
+                    return StatusCode(403);
+                }
+
+                updateCredentials.OldUsername = currentUsername;
+
+                // If user passed a new username update the username else update the password
+                if (!String.IsNullOrEmpty(updateCredentials.NewUsername))
+                {
+                    // Updating the username needs to have a new auth token with the update username
+                    await _authDataService.UpdateUserUsernameAsync(updateCredentials);
+                    user.Username = updateCredentials.NewUsername;
+                    var token = Jwt.GenerateJwt(_config, user);
+                    return Ok(new { token = token });
+                }
+                else
+                {
+                    await _authDataService.UpdateUserPasswordAsync(updateCredentials);
+                }
+
+                return Ok();
             }
             catch (DbException)
             {
@@ -79,9 +126,9 @@ namespace Api.Controllers
         {
             try
             {
-                await _authDataService.CreateUserCredentials(newUser);
+                await _authDataService.CreateUserCredentialsAsync(newUser);
                 await _userDataService.CreateUserAsync(newUser);
-                return Login(new UserLogin() { UserName = newUser.Username, Password = newUser.Password });
+                return Login(new UserLogin() { UserName = newUser.Username, Password = newUser.Password }).Result;
             }
             catch (DbException ex)
             {
@@ -91,7 +138,7 @@ namespace Api.Controllers
                 }
                 else if (ex.SqlState == "23000")
                 {
-                    await _authDataService.DeleteUserCredentials(newUser);
+                    await _authDataService.DeleteUserCredentialsAsync(newUser);
                     return BadRequest("Username is already in use.");
                 }
                 return StatusCode(500);

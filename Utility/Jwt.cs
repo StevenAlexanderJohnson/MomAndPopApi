@@ -23,7 +23,7 @@ namespace Api.Utility
                 Subject = new ClaimsIdentity(new[]
                 {
                     new Claim("validated", "true"),
-                    new Claim("name", user.Username),
+                    new Claim("username", user.Username),
                     new Claim("userID", user.UserID.ToString())
                 }),
                 Expires = DateTime.UtcNow.AddMinutes(3),

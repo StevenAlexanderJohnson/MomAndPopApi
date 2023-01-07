@@ -7,5 +7,7 @@
         public string Description { get; set; }
         public bool Attachment { get; set; }
         public string ImageUrl { get; set; }
+        public DateTime CreateDate { get; set; }
+        public string UserName { get; set; }
     }
 }

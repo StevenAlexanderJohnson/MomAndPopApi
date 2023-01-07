@@ -9,14 +9,28 @@ namespace Api.DataServices.Interfaces
         /// </summary>
         /// <param name="newUser">Object containing the username and password for the user.</param>
         /// <returns>Nothing</returns>
-        public Task<string> CreateUserCredentials(User newUser);
+        public Task<string> CreateUserCredentialsAsync(User newUser);
+
+        /// <summary>
+        /// Updates the password field 
+        /// </summary>
+        /// <param name="updateCredentials">Contains what the new credentials should be set to.</param>
+        /// <returns>Nothing</returns>
+        public Task UpdateUserPasswordAsync(UpdateCredentials updateCredentials);
+
+        /// <summary>
+        /// Updates the username field
+        /// </summary>
+        /// <param name="updateCredentials">Contains what the new credentials should  be set to.</param>
+        /// <returns>Nothing</returns>
+        public Task UpdateUserUsernameAsync(UpdateCredentials updateCredentials);
 
         /// <summary>
         /// Delete the user credentials from the Auth database
         /// </summary>
         /// <param name="user">Object containing the username and password of the user.</param>
         /// <returns>Nothing</returns>
-        public Task DeleteUserCredentials(User user);
+        public Task DeleteUserCredentialsAsync(User user);
 
         /// <summary>
         /// Validate user credentials.
@@ -38,7 +52,7 @@ namespace Api.DataServices.Interfaces
         /// <param name="username">Username of the user to update</param>
         /// <param name="newRefreshToken">Value to set the refresk token to.</param>
         /// <returns>Nothing</returns>
-        public Task UpdateRefreshToken(string username, string newRefreshToken);
+        public Task UpdateRefreshTokenAsync(string username, string newRefreshToken);
 
         /// <summary>
         /// Sets the expire time to now to invalidate refresh token.

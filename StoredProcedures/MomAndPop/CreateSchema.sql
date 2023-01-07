@@ -23,10 +23,11 @@ CREATE TABLE `POST` (
    `title` varchar(50) NOT NULL,
    `description` varchar(250) NOT NULL,
    `user_id` bigint NOT NULL,
+   `create_date` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
    PRIMARY KEY (`id`),
    KEY `POST_ibfk_1` (`user_id`),
    CONSTRAINT `POST_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `USER` (`id`) ON DELETE CASCADE
- ) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
+ ) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
 %%
 
 CREATE TABLE `POST_IMAGES` (

@@ -79,6 +79,8 @@ namespace Api.DataServices
                     addValue.Title = sqlReader.GetString("title");
                     addValue.Description = sqlReader.GetString("description");
                     addValue.Attachment = sqlReader.GetBoolean("attachment");
+                    addValue.CreateDate = sqlReader.GetDateTime("create_date");
+                    addValue.UserName = sqlReader.GetString("username");
                     if(addValue.Attachment)
                     {
                         addValue.ImageUrl = $"https://localhost:7282/api/image/{addValue.Id}";

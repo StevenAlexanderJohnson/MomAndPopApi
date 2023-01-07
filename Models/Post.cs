@@ -1,6 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using System.Collections;
-using System.Numerics;
 
 public class Post 
 {

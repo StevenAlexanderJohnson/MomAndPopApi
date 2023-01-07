@@ -27,7 +27,7 @@ namespace Api.Utility
                 return null;
             }
             var newRefreshToken = GenerateRefreshToken();
-            await authDataService.UpdateRefreshToken(userData.Username, newRefreshToken);
+            await authDataService.UpdateRefreshTokenAsync(userData.Username, newRefreshToken);
             return new UserModel() { Username = userLogin.UserName, Password = userLogin.Password, Roles = "validated", UserID = userData.Id, RefreshToken = newRefreshToken };
         }
 
@@ -53,7 +53,7 @@ namespace Api.Utility
                 throw new Exception("Error retreiving user information");
             }
             string newRefreshToken = GenerateRefreshToken();
-            await authDataService.UpdateRefreshToken(username, newRefreshToken);
+            await authDataService.UpdateRefreshTokenAsync(username, newRefreshToken);
             return new UserModel() { Username = username, UserID = userData.Id, RefreshToken = newRefreshToken };
         }
 

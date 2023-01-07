@@ -15,7 +15,7 @@ namespace Api.DataServices
             _connectionFactory = connectionFactory;
         }
 
-        public async Task<string> CreateUserCredentials(User newUser)
+        public async Task<string> CreateUserCredentialsAsync(User newUser)
         {
             using (var connection = await _connectionFactory.CreateConnectionAsync())
             {
@@ -34,7 +34,39 @@ namespace Api.DataServices
             }
         }
 
-        public async Task DeleteUserCredentials(User user)
+        public async Task UpdateUserPasswordAsync(UpdateCredentials updateCredentials)
+        {
+            using (var connection = await _connectionFactory.CreateConnectionAsync())
+            {
+                await using MySqlCommand command = new MySqlCommand("sp_Update_User_Password", connection)
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
+                command.Parameters.AddWithValue("usernameInput", updateCredentials.OldUsername);
+                command.Parameters.AddWithValue("newPasswordInput", PasswordHasher.HashPassword(updateCredentials.NewPassword!));
+
+                await command.ExecuteNonQueryAsync();
+                return;
+            }
+        }
+
+        public async Task UpdateUserUsernameAsync(UpdateCredentials updateCredentials)
+        {
+            using (var connection = await _connectionFactory.CreateConnectionAsync())
+            {
+                await using MySqlCommand command = new MySqlCommand("sp_Update_User_Username", connection)
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
+                command.Parameters.AddWithValue("usernameInput", updateCredentials.OldUsername);
+                command.Parameters.AddWithValue("newUsernameInput", updateCredentials.NewUsername);
+
+                await command.ExecuteNonQueryAsync();
+                return;
+            }
+        }
+
+        public async Task DeleteUserCredentialsAsync(User user)
         {
             using (var connection = await _connectionFactory.CreateConnectionAsync())
             {
@@ -84,7 +116,7 @@ namespace Api.DataServices
             }
         }
 
-        public async Task UpdateRefreshToken(string username, string newRefreshToken)
+        public async Task UpdateRefreshTokenAsync(string username, string newRefreshToken)
         {
             using (var connection = await _connectionFactory.CreateConnectionAsync())
             {
