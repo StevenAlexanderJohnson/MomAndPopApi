@@ -68,7 +68,7 @@ namespace Api.DataServices
                 {
                     CommandType = CommandType.StoredProcedure
                 };
-                command.Parameters.AddWithValue("page_offset", offset);
+                command.Parameters.AddWithValue("page_offset", offset * 10);
 
                 await using MySqlDataReader sqlReader = await command.ExecuteReaderAsync();
                 List<PostResponse> output = new List<PostResponse>();
