@@ -3,6 +3,7 @@ using Api.Dependencies;
 using Api.Models;
 using MySqlConnector;
 using System.Data;
+using System.Data.Common;
 
 namespace Api.DataServices
 {
@@ -102,6 +103,50 @@ namespace Api.DataServices
                 command.Parameters.AddWithValue("@State", newUser.State);
                 command.Parameters.AddWithValue("@Zip", newUser.Zip);
                 command.Parameters.AddWithValue("@Verified", newUser.Verified);
+
+                await command.ExecuteNonQueryAsync();
+            }
+        }
+
+        public async Task<Tuple<byte[], string>> GetUserImageByIdAsync(Int64 userId)
+        {
+            using (var connection = await _connectionFactory.CreateConnectionAsync())
+            {
+                await using MySqlCommand command = new MySqlCommand("sp_Get_User_Image", connection)
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
+                command.Parameters.AddWithValue("userId", userId);
+
+                await using MySqlDataReader reader = await command.ExecuteReaderAsync();
+                await reader.ReadAsync();
+                if (!reader.HasRows)
+                {
+                    throw new Exception("No Data");
+                }
+
+                Tuple<byte[], string> output = new Tuple<byte[], string>(
+                    (byte[])reader["image"],
+                    (string)reader["image_type"]
+                );
+
+                return output;
+            }
+        }
+
+        public async Task CreateUserImageAsync(UserImage userImage)
+        {
+            using (var connection = await _connectionFactory.CreateConnectionAsync())
+            {
+                await using MySqlCommand command = new MySqlCommand("sp_Set_User_Image")
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
+                using MemoryStream ms = new MemoryStream();
+                await userImage.Image[0].CopyToAsync(ms);
+                command.Parameters.AddWithValue("UserId", userImage.UserId);
+                command.Parameters.AddWithValue("Image", ms.ToArray());
+                command.Parameters.AddWithValue("ImageType", userImage.Image[0].ContentType);
 
                 await command.ExecuteNonQueryAsync();
             }

@@ -72,6 +72,15 @@ CREATE TABLE `USER` (
  ) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
 %%
 
+CREATE TABLE `USER_IMAGES` (
+   `user_id` bigint NOT NULL,
+   `image` mediumblob NOT NULL,
+   `image_type` varchar(6) NOT NULL,
+   PRIMARY KEY (`user_id`),
+   CONSTRAINT `user_id` FOREIGN KEY (`user_id`) REFERENCES `USER` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+ ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
+%%
+
 CREATE TABLE `USER_EMAIL` (
    `user_id` bigint NOT NULL,
    `email` varchar(30) NOT NULL,
