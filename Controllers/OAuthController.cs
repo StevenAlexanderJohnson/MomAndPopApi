@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using System.Data.Common;
 using System.Net;
+using System.Text.RegularExpressions;
 
 namespace Api.Controllers
 {
@@ -76,7 +77,7 @@ namespace Api.Controllers
                 var user = Authentication.Authenticate(userLogin, _userDataService, _authDataService).Result;
                 if (user == null)
                 {
-                    return StatusCode(403);
+                    return StatusCode(401);
                 }
 
                 updateCredentials.OldUsername = currentUsername;
@@ -124,6 +125,13 @@ namespace Api.Controllers
         [Route("register")]
         public async Task<ActionResult> Register([FromBody] User newUser)
         {
+            Regex passwordPattern = new Regex("(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[@$!%*#?&])[A-Za-z\\d@$!%*#?&]{8,}");
+            Match match = passwordPattern.Match(newUser.Password);
+            if (!match.Success)
+            {
+                // Allows annonymous so has permissions but is not permitted access.
+                return StatusCode(403);
+            }
             try
             {
                 await _authDataService.CreateUserCredentialsAsync(newUser);
@@ -163,7 +171,7 @@ namespace Api.Controllers
                 string refreshToken = Request.Cookies["refreshToken"]!;
                 if(string.IsNullOrEmpty(refreshToken))
                 {
-                    return BadRequest();
+                    return StatusCode(401);
                 }
                 await _authDataService.ExpireRefreshTokenAsync(refreshToken);
                 return Ok();
@@ -188,7 +196,7 @@ namespace Api.Controllers
                 string refreshToken = Request.Cookies["refreshToken"]!;
                 if (string.IsNullOrEmpty(refreshToken))
                 {
-                    return StatusCode(403);
+                    return StatusCode(401);
                 }
                 UserModel user = await Authentication.RefreshAuthToken(refreshToken, _userDataService, _authDataService);
 
