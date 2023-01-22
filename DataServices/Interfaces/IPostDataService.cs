@@ -38,5 +38,13 @@ namespace Api.DataServices.Interfaces
         /// <param name="newPost">Object containing the post information.</param>
         /// <returns>Nothing</returns>
         public Task CreatePostAsync(Post newPost);
+
+        /// <summary>
+        /// Get all the post created by a user.
+        /// </summary>
+        /// <param name="username">Username of the user in question.</param>
+        /// <param name="pageOffset">Number of pages from the first post.</param>
+        /// <returns>List of PostResponse objects.</returns>
+        public Task<List<PostResponse>> GetPostByUserAsync(string username, int pageOffset);
     }
 }

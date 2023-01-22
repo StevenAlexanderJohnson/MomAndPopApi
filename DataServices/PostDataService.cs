@@ -132,5 +132,37 @@ namespace Api.DataServices
                 await command.ExecuteNonQueryAsync();
             }
         }
+
+        public async Task<List<PostResponse>> GetPostByUserAsync(string username, int pageOffset)
+        {
+            using (var connection = await _connectionFactory.CreateConnectionAsync())
+            {
+                await using MySqlCommand command = new MySqlCommand("sp_Get_Post_By_User", connection)
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
+                command.Parameters.AddWithValue("Username", username);
+                command.Parameters.AddWithValue("page_offset", pageOffset * 10);
+
+                await using MySqlDataReader reader = await command.ExecuteReaderAsync();
+                List<PostResponse> output = new List<PostResponse>();
+                while (reader.Read())
+                {
+                    PostResponse addValue = new PostResponse();
+                    addValue.Id = reader.GetInt64("id");
+                    addValue.Title = reader.GetString("title");
+                    addValue.Description = reader.GetString("description");
+                    addValue.Attachment = reader.GetBoolean("attachment");
+                    addValue.CreateDate = reader.GetDateTime("create_date");
+                    addValue.UserName = reader.GetString("username");
+                    if (addValue.Attachment)
+                    {
+                        addValue.ImageUrl = $"https://localhost:7282/api/image/{addValue.Id}";
+                    }
+                    output.Add(addValue);
+                }
+                return output;
+            }
+        }
     }
 }
